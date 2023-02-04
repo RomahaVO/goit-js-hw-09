@@ -11,9 +11,7 @@ const hoursTimer = document.querySelector('[data-hours]');
 const minutesTimer = document.querySelector('[data-minutes]');
 const secondsTimer = document.querySelector('[data-seconds]');
 
-let timerID = null;
-let userDate = null;
-
+let selectedDate = '';
 
 const options = {
     enableTime: true,
@@ -21,77 +19,47 @@ const options = {
     defaultDate: new Date(),
     minuteIncrement: 1,
     onClose(selectedDates) {
-    selectedDates[0] < options.defaultDate
-    // ?   (startBtn.disabled = false)
-    // :   (Notify.info ('Please choose a date in the future'),
-    //     (startBtn.disabled = true))
-
-
-    ? (Notify ('Please choose a date in the future'),
+        selectedDates[0] <= options.defaultDate
+        ? (Notify.failure('Please choose a date in the future'),
         (startBtn.disabled = true))
-    :   (startBtn.disabled = false);
-    userDate = selectedDates[0];
+        : (startBtn.disabled = false);
     },
 };
 
 const flatpickrTimer  = flatpickr('#datetime-picker', options);
 
-window.addEventListener('click', startTimer);
+startBtn.addEventListener('click', startTimer);
+input.addEventListener('input', onInputChange);
 
-function startTimer(e) {
-    if (e.target.nodeName !== 'BUTTON') 
-    return timerID = setInterval(countDownTimer, 1000);
-        startBtn.disabled = true;
-        input.disabled = true;
-};
 
-function getTimeComponents(time) {
-    return convertMs(time);
-};
-
-function updateCountDownUI({ seconds, minutes, hours, days }) {
-    secondsTimer.textContent = seconds;
-    minutesTimer.textContent = minutes;
-    hoursTimer.textContent = hours;
-    daysTimer.textContent = days;
+function onInputChange(e) {
+    selectedDate = new Date(e.currentTarget.value);
 }
 
-function countDownTimer() {
-    userDate = Date.parse(input.value);
-    const diff = userDate - Date.now();
-    let { days, hours, minutes, seconds } = getTimeComponents(diff);
-    if (userDate <= Date.now()) {
-    Notify.info('Please, choose date in future');
-    clearInterval(timerID);
-    input.disabled = false;
-    }
-    if (diff <= 1000) {
-    clearInterval(timerID);
-    seconds = getTimeComponents(0).seconds;
-    minutes = getTimeComponents(0).minutes;
-    hours = getTimeComponents(0).hours;
-    days = getTimeComponents(0).days;
-    input.disabled = false;
-    }
-    updateCountDownUI({ seconds, minutes, hours, days });
+function startTimer() {
+    setInterval(()=>{
+        const diff = selectedDate - Date.now();
+        convertMs(diff);
+        startBtn.disabled = true;
+        input.disabled = true;
+    }, 1000);   
 };
 
-//============= function convertMs
-function convertMs(ms) {
-    // Number of milliseconds per unit of time
-    const second = 1000;
-    const minute = second * 60;
-    const hour = minute * 60;
-    const day = hour * 24;
+function convertMs(diff){
+    const days = addDoubleZero(Math.floor(diff / (1000 * 60 * 60 * 24)));
+    const hours = addDoubleZero(Math.floor((diff / (1000 * 60 * 60)) % 24));
+    const minutes = addDoubleZero(Math.floor((diff / (1000 * 60)) % 60));
+    const seconds = addDoubleZero(Math.floor((diff / 1000) % 60));
 
-    // Remaining days
-    const days = Math.floor(ms / day);
-    // Remaining hours
-    const hours = Math.floor((ms % day) / hour);
-    // Remaining minutes
-    const minutes = Math.floor(((ms % day) % hour) / minute);
-    // Remaining seconds
-    const seconds = Math.floor((((ms % day) % hour) % minute) / second);
-
-    return { days, hours, minutes, seconds };
+    daysTimer.textContent = days;
+    hoursTimer.textContent = hours;
+    minutesTimer.textContent = minutes;
+    secondsTimer.textContent = seconds;
 };
+
+function addDoubleZero(value) {
+    return String(value).padStart(2, '0');
+};
+
+
+
