@@ -12,6 +12,7 @@ const minutesTimer = document.querySelector('[data-minutes]');
 const secondsTimer = document.querySelector('[data-seconds]');
 
 let selectedDate = '';
+let timerID = null;
 
 const options = {
     enableTime: true,
@@ -34,15 +35,22 @@ input.addEventListener('input', onInputChange);
 
 function onInputChange(e) {
     selectedDate = new Date(e.currentTarget.value);
+    console.log(selectedDate);
 }
 
 function startTimer() {
-    setInterval(()=>{
+    const timerID = setInterval(()=>{
+        
         const diff = selectedDate - Date.now();
+        if(diff < 0){
+            clearInterval(timerID);
+            return;
+        };
         convertMs(diff);
         startBtn.disabled = true;
         input.disabled = true;
-    }, 1000);   
+    }, 1000); 
+
 };
 
 function convertMs(diff){
@@ -55,6 +63,7 @@ function convertMs(diff){
     hoursTimer.textContent = hours;
     minutesTimer.textContent = minutes;
     secondsTimer.textContent = seconds;
+
 };
 
 function addDoubleZero(value) {
